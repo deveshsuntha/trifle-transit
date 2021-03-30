@@ -26,6 +26,9 @@ public class SendingController {
     private TextField port;
 
     @FXML
+    private TextField host;
+
+    @FXML
     private Button dirChooser;
 
     private File selectedDirectory;
@@ -65,12 +68,10 @@ public class SendingController {
 
         status.setText("Connecting Receiver");
 
-        SenderService senderService = new SenderService(selectedDirectory.getPath(), Integer.valueOf(port.getText()));
+        SenderService senderService = new SenderService(parent, selectedDirectory.getPath(), host.getText(), Integer.valueOf(port.getText()));
 
         senderService.setOnSucceeded(workerStateEvent -> {
             status.setText("Connected");
-            parent.log("Connected to Receiver");
-            parent.log("Sending files");
         });
 
         senderService.setOnFailed(workerStateEvent -> {

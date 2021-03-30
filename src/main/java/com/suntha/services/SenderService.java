@@ -1,5 +1,6 @@
 package com.suntha.services;
 
+import com.suntha.controller.AppController;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 
@@ -7,19 +8,24 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.net.InetAddress;
 import java.net.Socket;
 
 public class SenderService extends Service<Boolean> {
 
     private static DataOutputStream dataOutputStream = null;
     private static DataInputStream dataInputStream = null;
+    private static AppController log;
+    private String host = null;
     private String basepath = null;
     private static int totalFiles = 0;
     private int port;
 
-    public SenderService(String basepath, int port) {
+    public SenderService(AppController parent, String basepath, String host, int port) {
+        this.host = host;
         this.basepath = basepath;
         this.port = port;
+        this.log = parent;
     }
 
     @Override
@@ -34,15 +40,18 @@ public class SenderService extends Service<Boolean> {
 
     private Boolean execute() throws Exception {
 
-        try(Socket socket = new Socket("localhost",port)) {
+        try(Socket socket = new Socket(host,port)) {
             dataInputStream = new DataInputStream(socket.getInputStream());
             dataOutputStream = new DataOutputStream(socket.getOutputStream());
             calculateNoOfFiles(basepath);
             sendDirectory(basepath);
             dataInputStream.close();
             dataInputStream.close();
+            log.log("Transfer complete");
             return Boolean.TRUE;
         }catch (Exception e){
+            log.log(e.getLocalizedMessage());
+            e.printStackTrace();
             throw new Exception(e);
         }
 
@@ -100,5 +109,6 @@ public class SenderService extends Service<Boolean> {
             dataOutputStream.flush();
         }
         fileInputStream.close();
+        log.log("File Sent : " + path);
     }
 }
